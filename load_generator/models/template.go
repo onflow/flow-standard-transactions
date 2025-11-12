@@ -6,4 +6,7 @@ type Template interface {
 
 	// Cardinality returns the number of parameters that this template has
 	Cardinality() uint
+
+	TransactionEdit(parameters Parameters) TransactionEdit
+	InitialParameters() Parameters
 }

@@ -1,13 +1,8 @@
 package registry
 
 import (
-	"encoding/json"
-	"fmt"
-	"os"
-
-	"github.com/onflow/flow-execution-effort-estimation/load_generator/errors"
-	"github.com/onflow/flow-execution-effort-estimation/load_generator/models"
-	"github.com/onflow/flow-execution-effort-estimation/load_generator/templates"
+	"github.com/onflow/flow-standard-transactions/load_generator/errors"
+	"github.com/onflow/flow-standard-transactions/load_generator/models"
 )
 
 type Registry struct {
@@ -66,67 +61,12 @@ func (r Registry) Get(label models.Label) (models.Template, error) {
 	return templ, nil
 }
 
-func (r Registry) ValidateDNA(dna models.DNA) error {
-	for _, element := range dna {
-		template, err := r.Get(element.Label)
-		if err != nil {
-			return fmt.Errorf("template not found: %w", err)
-		}
-		if template.Cardinality() != uint(len(element.Parameters)) {
-			return fmt.Errorf("template %s has cardinality %d, but DNA has %d parameters", element.Label, template.Cardinality(), len(element.Parameters))
-		}
-	}
-	return nil
-}
-
 func (r Registry) AllLabels() []models.Label {
 	labels := make([]models.Label, 0, len(r.templates))
 	for label := range r.templates {
 		labels = append(labels, label)
 	}
 	return labels
-}
-
-func (r Registry) LoadInitialParametersFromFile(path string) error {
-	file, err := os.ReadFile(path)
-	if err != nil {
-		return err
-	}
-
-	var initialParameters InitialParametersData
-	err = json.Unmarshal(file, &initialParameters)
-	if err != nil {
-		return err
-	}
-
-	for label, parameters := range initialParameters.Templates {
-		t, ok := r.templates[label]
-		if !ok {
-			continue
-		}
-
-		switch tt := t.(type) {
-		case *templates.SavedInitialParameters:
-			t = templates.NewSavedInitialParameters(tt.Template, parameters.InitialParameters)
-		default:
-			t = templates.NewSavedInitialParameters(tt, parameters.InitialParameters)
-		}
-		r.templates[label] = t
-	}
-	return nil
-}
-
-func SaveInitialParametersToFile(path string, data InitialParametersData) error {
-	jsonData, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(path, jsonData, 0o644)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 var Global Registry

@@ -9,8 +9,6 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// DNAPreparer
-// is responsible for keeping track of which setup functions have been called
 type TransactionBuilder struct {
 	registry models.Registry
 }
@@ -28,9 +26,8 @@ type builtTransaction struct {
 	log zerolog.Logger
 
 	transactionBuilder *TransactionBuilder
+	transactionEdits   []models.TransactionEdit
 }
-
-var emptyBody = models.TransactionBody("")
 
 // Prepare prepares everything for sending a transaction with the given a DNA
 // - if a global setup is required, it is run once.
@@ -55,6 +52,26 @@ func (b *builtTransaction) BuildTransactionBody() (string, error) {
 	prepare := strings.Builder{}
 	execute := strings.Builder{}
 	declare := strings.Builder{}
+
+	for _, edit := range b.transactionEdits {
+		if edit.FieldDeclarations != "" {
+			declare.WriteString(strings.Trim(edit.FieldDeclarations, "\n\r"))
+			declare.WriteString("\n")
+		}
+
+		if edit.PrepareBlock != "" {
+			prepare.WriteString("        f = fun() {\n")
+			prepare.WriteString(models.TrimAndReplaceIndentation(edit.PrepareBlock, 12))
+			prepare.WriteString("        }\n        f()\n")
+		}
+
+		if edit.ExecuteBlock != "" {
+			execute.WriteString("        f = fun() {\n")
+			execute.WriteString(models.TrimAndReplaceIndentation(edit.ExecuteBlock, 12))
+			execute.WriteString("        }\n        f()\n")
+		}
+
+	}
 
 	// imports need to be added later by the user of this library
 	return fmt.Sprintf(

@@ -1,15 +1,11 @@
 package registry
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
-	"github.com/onflow/flow-go/fvm/systemcontracts"
-	"github.com/onflow/flow-go/model/flow"
-
-	"github.com/onflow/flow-execution-effort-estimation/load_generator/models"
-	"github.com/onflow/flow-execution-effort-estimation/load_generator/templates"
+	"github.com/onflow/flow-standard-transactions/load_generator/models"
+	"github.com/onflow/flow-standard-transactions/load_generator/transaction_builder"
 )
 
 const scheduleTemplate = `
@@ -46,45 +42,17 @@ func simpleScheduledTransactionTemplateWithLoop(
 	initialParams models.Parameters,
 	cardinality uint,
 	body func(models.Parameters) string,
-) *templates.SimpleTemplate {
-	var contractAddress *flow.Address
-
-	return templates.NewSimpleTemplate(
+) *transaction_builder.SimpleTemplate {
+	return transaction_builder.NewSimpleTemplate(
 		name,
 		label,
 		cardinality,
 	).
 		WithInitialParameters(initialParams).
-		WithTransactionEdit(func(parameters models.Parameters) models.TransactionEditFunc {
-			return func(
-				context models.Context,
-				account models.Account,
-			) (models.TransactionEdit, error) {
-				sc := systemcontracts.SystemContractsForChain(context.ChainID)
-
-				return models.TransactionEdit{
-					Imports: map[string]flow.Address{
-						sc.FlowToken.Name:             sc.FlowToken.Address,
-						sc.FungibleToken.Name:         sc.FungibleToken.Address,
-						sc.FlowCallbackScheduler.Name: sc.FlowCallbackScheduler.Address,
-						"TestContract":                *contractAddress,
-					},
-					PrepareBlock: templates.LoopTemplate(parameters[0], body(parameters)),
-				}, nil
+		WithTransactionEdit(func(parameters models.Parameters) models.TransactionEdit {
+			return models.TransactionEdit{
+				PrepareBlock: transaction_builder.LoopTemplate(parameters[0], body(parameters)),
 			}
-		}).
-		WithGlobalSetup(func(
-			ctx context.Context,
-			c models.Context,
-			setup models.ChainInteraction,
-		) error {
-			address, err := setupTestContract(ctx, c, setup)
-			if err != nil {
-				return err
-			}
-			contractAddress = &address
-
-			return nil
 		})
 }
 

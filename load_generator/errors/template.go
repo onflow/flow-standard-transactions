@@ -3,7 +3,7 @@ package errors
 import (
 	"fmt"
 
-	"github.com/onflow/flow-execution-effort-estimation/load_generator/models"
+	"github.com/onflow/flow-standard-transactions/load_generator/models"
 )
 
 type TemplateAlreadyRegistered struct {
