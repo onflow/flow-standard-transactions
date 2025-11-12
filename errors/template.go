@@ -3,16 +3,16 @@ package errors
 import (
 	"fmt"
 
-	"github.com/onflow/flow-standard-transactions/load_generator/models"
+	"github.com/onflow/flow-standard-transactions/template"
 )
 
 type TemplateAlreadyRegistered struct {
-	Label models.Label
+	Label template.Label
 }
 
 var _ Error = (*TemplateAlreadyRegistered)(nil)
 
-func NewTemplateAlreadyRegistered(label models.Label) TemplateAlreadyRegistered {
+func NewTemplateAlreadyRegistered(label template.Label) TemplateAlreadyRegistered {
 	return TemplateAlreadyRegistered{Label: label}
 }
 
@@ -21,12 +21,12 @@ func (t TemplateAlreadyRegistered) Error() string {
 }
 
 type TemplateNotFound struct {
-	Label models.Label
+	Label template.Label
 }
 
 var _ Error = (*TemplateNotFound)(nil)
 
-func NewTemplateNotFound(label models.Label) TemplateNotFound {
+func NewTemplateNotFound(label template.Label) TemplateNotFound {
 	return TemplateNotFound{Label: label}
 }
 
@@ -35,13 +35,13 @@ func (t TemplateNotFound) Error() string {
 }
 
 type ModelCalibration struct {
-	Label models.Label
+	Label template.Label
 	Err   error
 }
 
 var _ UnwrappableError = (*ModelCalibration)(nil)
 
-func NewModelCalibration(label models.Label, err error) ModelCalibration {
+func NewModelCalibration(label template.Label, err error) ModelCalibration {
 	return ModelCalibration{Label: label, Err: err}
 }
 
@@ -54,12 +54,12 @@ func (m ModelCalibration) Unwrap() error {
 }
 
 type NoUniqueIntensities struct {
-	Label models.Label
+	Label template.Label
 }
 
 var _ Error = (*NoUniqueIntensities)(nil)
 
-func NewNoUniqueIntensities(label models.Label) *NoUniqueIntensities {
+func NewNoUniqueIntensities(label template.Label) *NoUniqueIntensities {
 	return &NoUniqueIntensities{Label: label}
 }
 

@@ -1,24 +1,24 @@
 package registry
 
 import (
-	"github.com/onflow/flow-standard-transactions/load_generator/errors"
-	"github.com/onflow/flow-standard-transactions/load_generator/models"
+	"github.com/onflow/flow-standard-transactions/errors"
+	"github.com/onflow/flow-standard-transactions/template"
 )
 
 type Registry struct {
-	templates map[models.Label]models.Template
+	templates map[template.Label]template.Template
 }
 
-var _ models.Registry = &Registry{}
+var _ template.Registry = &Registry{}
 
 func NewRegistry() Registry {
 	return Registry{
-		templates: make(map[models.Label]models.Template),
+		templates: make(map[template.Label]template.Template),
 	}
 }
 
 func (r Registry) Clone() Registry {
-	templ := make(map[models.Label]models.Template)
+	templ := make(map[template.Label]template.Template)
 	for label, template := range r.templates {
 		templ[label] = template
 	}
@@ -27,7 +27,7 @@ func (r Registry) Clone() Registry {
 	}
 }
 
-func (r Registry) Register(template models.Template) error {
+func (r Registry) Register(template template.Template) error {
 	if _, ok := r.templates[template.Label()]; ok {
 		return errors.NewTemplateAlreadyRegistered(template.Label())
 	}
@@ -36,7 +36,7 @@ func (r Registry) Register(template models.Template) error {
 	return nil
 }
 
-func (r Registry) RegisterAll(template []models.Template) error {
+func (r Registry) RegisterAll(template []template.Template) error {
 	for _, templ := range template {
 		if err := r.Register(templ); err != nil {
 			return err
@@ -45,14 +45,14 @@ func (r Registry) RegisterAll(template []models.Template) error {
 	return nil
 }
 
-func (r Registry) Unregister(labels ...models.Label) Registry {
+func (r Registry) Unregister(labels ...template.Label) Registry {
 	for _, label := range labels {
 		delete(r.templates, label)
 	}
 	return r
 }
 
-func (r Registry) Get(label models.Label) (models.Template, error) {
+func (r Registry) Get(label template.Label) (template.Template, error) {
 	templ, ok := r.templates[label]
 	if !ok {
 		return nil, errors.NewTemplateNotFound(label)
@@ -61,8 +61,8 @@ func (r Registry) Get(label models.Label) (models.Template, error) {
 	return templ, nil
 }
 
-func (r Registry) AllLabels() []models.Label {
-	labels := make([]models.Label, 0, len(r.templates))
+func (r Registry) AllLabels() []template.Label {
+	labels := make([]template.Label, 0, len(r.templates))
 	for label := range r.templates {
 		labels = append(labels, label)
 	}
@@ -89,7 +89,7 @@ func init() {
 }
 
 type InitialParametersData struct {
-	Templates map[models.Label]TemplateInitialParameters `json:"templates"`
+	Templates map[template.Label]TemplateInitialParameters `json:"templates"`
 }
 
 type TemplateInitialParameters struct {

@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/onflow/flow-standard-transactions/load_generator/models"
-	"github.com/onflow/flow-standard-transactions/load_generator/transaction_builder"
+	"github.com/onflow/flow-standard-transactions/template"
 )
 
 const scheduleTemplate = `
@@ -38,31 +37,31 @@ const scheduleTemplate = `
 
 func simpleScheduledTransactionTemplateWithLoop(
 	name string,
-	label models.Label,
-	initialParams models.Parameters,
+	label template.Label,
+	initialParams template.Parameters,
 	cardinality uint,
-	body func(models.Parameters) string,
-) *transaction_builder.SimpleTemplate {
-	return transaction_builder.NewSimpleTemplate(
+	body func(template.Parameters) string,
+) *template.SimpleTemplate {
+	return template.NewSimpleTemplate(
 		name,
 		label,
 		cardinality,
 	).
 		WithInitialParameters(initialParams).
-		WithTransactionEdit(func(parameters models.Parameters) models.TransactionEdit {
-			return models.TransactionEdit{
-				PrepareBlock: transaction_builder.LoopTemplate(parameters[0], body(parameters)),
-			}
+		WithTransactionEdit(func(parameters template.Parameters) (template.TransactionEdit, error) {
+			return template.TransactionEdit{
+				PrepareBlock: template.LoopTemplate(parameters[0], body(parameters)),
+			}, nil
 		})
 }
 
-var scheduledTransactions = []models.Template{
+var scheduledTransactions = []template.Template{
 	simpleScheduledTransactionTemplateWithLoop(
 		"scheduled transaction and execute",
 		"ST",
-		models.Parameters{1},
+		template.Parameters{1},
 		1,
-		func(params models.Parameters) string {
+		func(params template.Parameters) string {
 			return fmt.Sprintf(scheduleTemplate, `
 				let fees <- vault.withdraw(amount: 0.003) as! @FlowToken.Vault
 				let timestamp = getCurrentBlock().timestamp + 120.0 // 2 minutes in future
@@ -77,9 +76,9 @@ var scheduledTransactions = []models.Template{
 	simpleScheduledTransactionTemplateWithLoop(
 		"scheduled transaction and execute with large data (100KB)",
 		"STLD",
-		models.Parameters{1, 1},
+		template.Parameters{1, 1},
 		2,
-		func(params models.Parameters) string {
+		func(params template.Parameters) string {
 			return fmt.Sprintf(scheduleTemplate, fmt.Sprintf(`
 				let fees <- vault.withdraw(amount: 0.11) as! @FlowToken.Vault
 				let timestamp = getCurrentBlock().timestamp + 120.0 // 2 minutes in future
@@ -94,9 +93,9 @@ var scheduledTransactions = []models.Template{
 	simpleScheduledTransactionTemplateWithLoop(
 		"scheduled transaction and execute with large array (10k items)",
 		"STLA",
-		models.Parameters{1, 1},
+		template.Parameters{1, 1},
 		2,
-		func(params models.Parameters) string {
+		func(params template.Parameters) string {
 			return fmt.Sprintf(scheduleTemplate, fmt.Sprintf(`
 				let largeArray: [Int] = []
 				while largeArray.length < %d {

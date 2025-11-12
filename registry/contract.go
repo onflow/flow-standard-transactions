@@ -4,8 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 
-	"github.com/onflow/flow-standard-transactions/load_generator/models"
-	"github.com/onflow/flow-standard-transactions/load_generator/transaction_builder"
+	"github.com/onflow/flow-standard-transactions/template"
 )
 
 //go:embed contract.cdc
@@ -13,45 +12,45 @@ var contract []byte
 
 func simpleContractTemplate(
 	name string,
-	label models.Label,
+	label template.Label,
 	cardinality uint,
-	bodyFunc func(parameters models.Parameters, te *models.TransactionEdit) error,
-) *transaction_builder.SimpleTemplate {
-	return transaction_builder.NewSimpleTemplate(
+	bodyFunc func(parameters template.Parameters, te *template.TransactionEdit) error,
+) *template.SimpleTemplate {
+	return template.NewSimpleTemplate(
 		name,
 		label,
 		cardinality,
 	).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
-				te := models.TransactionEdit{}
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
+				te := template.TransactionEdit{}
 				err := bodyFunc(parameters, &te)
 				if err != nil {
-					return models.TransactionEdit{}
+					return template.TransactionEdit{}, err
 				}
-				return te
+				return te, nil
 			},
 		)
 }
 
 func simpleContractTemplateWithLoop(
 	name string,
-	label models.Label,
+	label template.Label,
 	initialLoopLength uint64,
 	body string,
-) *transaction_builder.SimpleTemplate {
+) *template.SimpleTemplate {
 	return simpleContractTemplate(
 		name,
 		label,
 		1,
-		func(parameters models.Parameters, te *models.TransactionEdit) error {
-			te.PrepareBlock = transaction_builder.LoopTemplate(parameters[0], body)
+		func(parameters template.Parameters, te *template.TransactionEdit) error {
+			te.PrepareBlock = template.LoopTemplate(parameters[0], body)
 			return nil
 		},
-	).WithInitialParameters(models.Parameters{initialLoopLength})
+	).WithInitialParameters(template.Parameters{initialLoopLength})
 }
 
-var contractTemplates = []models.Template{
+var contractTemplates = []template.Template{
 	simpleContractTemplateWithLoop(
 		"call empty contract function",
 		"CEC",
@@ -74,7 +73,7 @@ var contractTemplates = []models.Template{
 		"emit event with string",
 		"CEES",
 		1,
-		func(parameters models.Parameters, te *models.TransactionEdit) error {
+		func(parameters template.Parameters, te *template.TransactionEdit) error {
 			body := fmt.Sprintf(`
 					let dict: {String: String} = %s
 					TestContract.emitDictEvent(dict)
@@ -83,5 +82,5 @@ var contractTemplates = []models.Template{
 			te.PrepareBlock = body
 			return nil
 		},
-	).WithInitialParameters(models.Parameters{960}),
+	).WithInitialParameters(template.Parameters{960}),
 }

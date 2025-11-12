@@ -9,32 +9,31 @@ import (
 
 	crypto2 "github.com/onflow/crypto"
 	"github.com/onflow/flow-go-sdk/crypto"
-	"github.com/onflow/flow-standard-transactions/load_generator/models"
-	"github.com/onflow/flow-standard-transactions/load_generator/transaction_builder"
+	"github.com/onflow/flow-standard-transactions/template"
 )
 
 func simpleTemplateWithLoop(
 	name string,
-	label models.Label,
+	label template.Label,
 	initialLoopLength uint64,
 	body string,
-) *transaction_builder.SimpleTemplate {
-	return transaction_builder.NewSimpleTemplate(
+) *template.SimpleTemplate {
+	return template.NewSimpleTemplate(
 		name,
 		label,
 		1,
 	).
-		WithInitialParameters(models.Parameters{initialLoopLength}).
+		WithInitialParameters(template.Parameters{initialLoopLength}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
-				return models.TransactionEdit{
-					PrepareBlock: transaction_builder.LoopTemplate(parameters[0], body),
-				}
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
+				return template.TransactionEdit{
+					PrepareBlock: template.LoopTemplate(parameters[0], body),
+				}, nil
 			},
 		)
 }
 
-var simpleTemplates = []models.Template{
+var simpleTemplates = []template.Template{
 	simpleTemplateWithLoop(
 		"empty loop",
 		"EL",
@@ -157,30 +156,30 @@ var simpleTemplates = []models.Template{
 			`,
 	),
 	// no unique intensities
-	//transaction_builder.NewSimpleTemplate(
+	//template.NewSimpleTemplate(
 	//	"store string",
 	//	"AStSt",
 	//	1,
 	//).
-	//	WithInitialParameters(models.Parameters{20}).
+	//	WithInitialParameters(template.Parameters{20}).
 	//	WithTransactionEdit(
-	//		func(parameters models.Parameters) models.TransactionEdit {
-	//			return func(c models.Context, a models.Account) (models.TransactionEdit, error) {
+	//		func(parameters template.Parameters) template.TransactionEdit {
+	//			return func(c template.Context, a template.Account) (template.TransactionEdit, error) {
 	//				body := fmt.Sprintf(`
 	//					signer.storage.save("%s", to: /storage/AStSt)
 	//					signer.storage.load<String>(from: /storage/AStSt)
 	//				`, stringOfLen(parameters[0]))
 	//
-	//				return models.TransactionEdit{
-	//					PrepareBlock: transaction_builder.LoopTemplate(100, body),
+	//				return template.TransactionEdit{
+	//					PrepareBlock: template.LoopTemplate(100, body),
 	//				}, nil
 	//			}
 	//		},
 	//	).
 	//	WithAccountSetup(
-	//		func(ctx context.Context, c models.Context, interaction models.ChainInteraction, account models.Account, params models.Parameters) error {
+	//		func(ctx context.Context, c template.Context, interaction template.ChainInteraction, account template.Account, params template.Parameters) error {
 	//			// remove anything that might be in storage
-	//			return models.RunTransactionBodyAsAccount(
+	//			return template.RunTransactionBodyAsAccount(
 	//				ctx,
 	//				"signer.storage.load<String>(from: /storage/AStSt)",
 	//				account,
@@ -190,64 +189,64 @@ var simpleTemplates = []models.Template{
 	//		},
 	//	),
 	// no unique intensities
-	//transaction_builder.NewSimpleTemplate(
+	//template.NewSimpleTemplate(
 	//	"create long string",
 	//	"LngStr",
 	//	1,
 	//).
-	//	WithInitialParameters(models.Parameters{100}).
+	//	WithInitialParameters(template.Parameters{100}).
 	//	WithTransactionEdit(
-	//		func(parameters models.Parameters) models.TransactionEdit {
-	//			return func(c models.Context, a models.Account) (models.TransactionEdit, error) {
+	//		func(parameters template.Parameters) template.TransactionEdit {
+	//			return func(c template.Context, a template.Account) (template.TransactionEdit, error) {
 	//				body := fmt.Sprintf(`
 	//					var s = "%s"
 	//					var S = ""
 	//                    %s
-	//				`, stringOfLen(parameters[0]+1), transaction_builder.LoopTemplate(100,
+	//				`, stringOfLen(parameters[0]+1), template.LoopTemplate(100,
 	//					`
 	//						S = S.concat(s)
 	//					`))
 	//
-	//				return models.TransactionEdit{
+	//				return template.TransactionEdit{
 	//					PrepareBlock: body,
 	//				}, nil
 	//			}
 	//		},
 	//	),
 	// no unique intensities
-	//transaction_builder.NewSimpleTemplate(
+	//template.NewSimpleTemplate(
 	//	"create long string with templating",
 	//	"LngStrTmpl",
 	//	1,
 	//).
-	//	WithInitialParameters(models.Parameters{100}).
+	//	WithInitialParameters(template.Parameters{100}).
 	//	WithTransactionEdit(
-	//		func(parameters models.Parameters) models.TransactionEdit {
-	//			return func(c models.Context, a models.Account) (models.TransactionEdit, error) {
+	//		func(parameters template.Parameters) template.TransactionEdit {
+	//			return func(c template.Context, a template.Account) (template.TransactionEdit, error) {
 	//				body := fmt.Sprintf(`
 	//					var s = "%s"
 	//					var S = ""
 	//                    %s
-	//				`, stringOfLen(parameters[0]+1), transaction_builder.LoopTemplate(100,
+	//				`, stringOfLen(parameters[0]+1), template.LoopTemplate(100,
 	//					`
 	//						S = "\(S)\(s)"
 	//					`))
 	//
-	//				return models.TransactionEdit{
+	//				return template.TransactionEdit{
 	//					PrepareBlock: body,
 	//				}, nil
 	//			}
 	//		},
 	//	),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"borrow string",
 		"ABrSt",
 		1,
 	).
-		WithInitialParameters(models.Parameters{1326}).
+		WithInitialParameters(template.Parameters{1326}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
-				return models.TransactionEdit{
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
+				return template.TransactionEdit{
 					PrepareBlock: `
 					let strings = signer.storage.borrow<&[String]>(from: /storage/ABrSt)!
 					var i = 0
@@ -257,18 +256,18 @@ var simpleTemplates = []models.Template{
 						i = i + 1
 					}
 					`,
-				}
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"copy string",
 		"ACpSt",
 		1,
 	).
-		WithInitialParameters(models.Parameters{1352}).
+		WithInitialParameters(template.Parameters{1352}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
-				return models.TransactionEdit{
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
+				return template.TransactionEdit{
 					PrepareBlock: `
 					let strings = signer.storage.copy<[String]>(from: /storage/ACpSt)!
 					var i = 0
@@ -278,18 +277,18 @@ var simpleTemplates = []models.Template{
 						i = i + 1
 					}
 					`,
-				}
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"copy string and save a duplicate",
 		"ACpStSv",
 		1,
 	).
-		WithInitialParameters(models.Parameters{1223}).
+		WithInitialParameters(template.Parameters{1223}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
-				return models.TransactionEdit{
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
+				return template.TransactionEdit{
 					PrepareBlock: `
 					let strings = signer.storage.copy<[String]>(from: /storage/ACpStSv)!
 					var i = 0
@@ -300,35 +299,35 @@ var simpleTemplates = []models.Template{
 					}
 					signer.storage.save(strings, to: /storage/ACpStSv2)
 					`,
-				}
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"store and load dict string",
 		"AStDSt",
 		1,
 	).
-		WithInitialParameters(models.Parameters{786}).
+		WithInitialParameters(template.Parameters{786}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
 				body := fmt.Sprintf(`
 						signer.storage.save<{String: String}>(%s, to: /storage/AStDSt)
 						signer.storage.load<{String: String}>(from: /storage/AStDSt)
 					`, stringDictOfLen(parameters[0], 75))
 
-				return models.TransactionEdit{
+				return template.TransactionEdit{
 					PrepareBlock: body,
-				}
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"store load and destroy dict string",
 		"ALdDStD",
 		1,
 	).
-		WithInitialParameters(models.Parameters{3324}).
+		WithInitialParameters(template.Parameters{3324}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
 				body := `
 						let strings = signer.storage.load<{String: String}>(from: /storage/ALdDStD)!
 						for key in strings.keys {
@@ -336,20 +335,20 @@ var simpleTemplates = []models.Template{
 						}
 					`
 
-				return models.TransactionEdit{
+				return template.TransactionEdit{
 					PrepareBlock: body,
-				}
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"borrow dict string",
 		"ABrDSt",
 		1,
 	).
-		WithInitialParameters(models.Parameters{206}).
+		WithInitialParameters(template.Parameters{206}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
-				return models.TransactionEdit{
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
+				return template.TransactionEdit{
 					PrepareBlock: `
 					let strings = signer.storage.borrow<&{String: String}>(from: /storage/ABrDSt)!
 					var lenSum = 0
@@ -358,18 +357,18 @@ var simpleTemplates = []models.Template{
 						return true
 					})
 					`,
-				}
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"copy dict string",
 		"ACpDSt",
 		1,
 	).
-		WithInitialParameters(models.Parameters{813}).
+		WithInitialParameters(template.Parameters{813}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
-				return models.TransactionEdit{
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
+				return template.TransactionEdit{
 					PrepareBlock: `
 					let strings = signer.storage.copy<{String: String}>(from: /storage/ACpDSt)!
 					var lenSum = 0
@@ -378,18 +377,18 @@ var simpleTemplates = []models.Template{
 						return true
 					})
 					`,
-				}
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"copy string dict and save a duplicate",
 		"ACpDStSv",
 		1,
 	).
-		WithInitialParameters(models.Parameters{1179}).
+		WithInitialParameters(template.Parameters{1179}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
-				return models.TransactionEdit{
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
+				return template.TransactionEdit{
 					PrepareBlock: `
 					let strings = signer.storage.copy<{String: String}>(from: /storage/ACpDStSv)!
 					var lenSum = 0
@@ -399,23 +398,23 @@ var simpleTemplates = []models.Template{
 					})
 					signer.storage.save(strings, to: /storage/ACpDStSv2)
 					`,
-				}
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"load dict and destroy it",
 		"DestDict",
 		1,
 	).
-		WithInitialParameters(models.Parameters{967}).
+		WithInitialParameters(template.Parameters{967}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
-				return models.TransactionEdit{
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
+				return template.TransactionEdit{
 					PrepareBlock: `
 					let r <- signer.storage.load<@{String: AnyResource}>(from: /storage/DestDict)!
 					destroy r
 					`,
-				}
+				}, nil
 			},
 		),
 	simpleTemplateWithLoop(
@@ -461,57 +460,57 @@ var simpleTemplates = []models.Template{
 				let key = signer.keys.get(keyIndex: 0)
 			`,
 	),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"Get contracts",
 		"GetCon",
 		1,
 	).
-		WithInitialParameters(models.Parameters{65}).
+		WithInitialParameters(template.Parameters{65}).
 		WithTransactionEdit(
-			func(params models.Parameters) models.TransactionEdit {
+			func(params template.Parameters) (template.TransactionEdit, error) {
 				body := `
 						signer.contracts.names
 					`
 
-				return models.TransactionEdit{
-					PrepareBlock: transaction_builder.LoopTemplate(params[0], body),
-				}
+				return template.TransactionEdit{
+					PrepareBlock: template.LoopTemplate(params[0], body),
+				}, nil
 			},
 		),
 
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"hash",
 		"H",
 		1,
 	).
-		WithInitialParameters(models.Parameters{328}).
+		WithInitialParameters(template.Parameters{328}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
 				body := fmt.Sprintf(`
 						Crypto.hash("%s".utf8, algorithm: HashAlgorithm.SHA2_256)
 					`, stringOfLen(20))
 
-				return models.TransactionEdit{
-					PrepareBlock: transaction_builder.LoopTemplate(parameters[0], body),
-				}
+				return template.TransactionEdit{
+					PrepareBlock: template.LoopTemplate(parameters[0], body),
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"String toLower",
 		"STL",
 		1,
 	).
-		WithInitialParameters(models.Parameters{5221}).
+		WithInitialParameters(template.Parameters{5221}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
 				body := fmt.Sprintf(`
 						var s = "%s"
 						s = s.toLower()
 					`, stringOfLen(parameters[0]))
 
-				return models.TransactionEdit{
-					PrepareBlock: transaction_builder.LoopTemplate(500, body),
-				}
+				return template.TransactionEdit{
+					PrepareBlock: template.LoopTemplate(500, body),
+				}, nil
 			},
 		),
 
@@ -597,34 +596,45 @@ var simpleTemplates = []models.Template{
 				let count = signer.keys.count
 			`,
 	),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"Create Key ECDSA_P256",
 		"CrKeyP256",
 		1,
 	).
-		WithInitialParameters(models.Parameters{112}).
+		WithInitialParameters(template.Parameters{112}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
-				body := `
-						let publicKey = PublicKey(
-							publicKey: "PUBLIC_KEY_PLACEHOLDER".decodeHex(),
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
+				seed := make([]byte, crypto.MinSeedLength)
+				for i := range seed {
+					seed[i] = 0
+				}
+
+				privateKey, err := crypto.GeneratePrivateKey(crypto.ECDSA_P256, seed)
+				if err != nil {
+					return template.TransactionEdit{}, err
+				}
+				key := hex.EncodeToString(privateKey.PublicKey().Encode())
+
+				body := fmt.Sprintf(`
+						  let publicKey = PublicKey(
+							publicKey: "%s".decodeHex(),
 							signatureAlgorithm: SignatureAlgorithm.ECDSA_P256
 						)
-					`
+					`, key)
 
-				return models.TransactionEdit{
-					PrepareBlock: transaction_builder.LoopTemplate(parameters[0], body),
-				}
+				return template.TransactionEdit{
+					PrepareBlock: template.LoopTemplate(parameters[0], body),
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"Create Key ECDSA_secp256k1",
 		"CrKeysecp256k1",
 		1,
 	).
-		WithInitialParameters(models.Parameters{112}).
+		WithInitialParameters(template.Parameters{112}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
 				body := `
 						let publicKey = PublicKey(
 							publicKey: "PUBLIC_KEY_PLACEHOLDER".decodeHex(),
@@ -632,19 +642,19 @@ var simpleTemplates = []models.Template{
 						)
 					`
 
-				return models.TransactionEdit{
-					PrepareBlock: transaction_builder.LoopTemplate(parameters[0], body),
-				}
+				return template.TransactionEdit{
+					PrepareBlock: template.LoopTemplate(parameters[0], body),
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"Create Key BLS_BLS12_381",
 		"CrKeyBLS",
 		1,
 	).
-		WithInitialParameters(models.Parameters{81}).
+		WithInitialParameters(template.Parameters{81}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
 				body := `
 						let publicKey = PublicKey(
 							publicKey: "PUBLIC_KEY_PLACEHOLDER".decodeHex(),
@@ -652,44 +662,44 @@ var simpleTemplates = []models.Template{
 						)
 					`
 
-				return models.TransactionEdit{
-					PrepareBlock: transaction_builder.LoopTemplate(parameters[0], body),
-				}
+				return template.TransactionEdit{
+					PrepareBlock: template.LoopTemplate(parameters[0], body),
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"Array Insert",
 		"ArrIns",
 		1,
 	).
-		WithInitialParameters(models.Parameters{1577}).
+		WithInitialParameters(template.Parameters{1577}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
 				body := fmt.Sprintf(`
 						let x = [0]
 						%s
-					`, transaction_builder.LoopTemplate(
+					`, template.LoopTemplate(
 					parameters[0],
 					`x.insert(at: i, 1)`,
 				))
 
-				return models.TransactionEdit{
+				return template.TransactionEdit{
 					PrepareBlock: body,
-				}
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"Array Insert Remove",
 		"ArrInsDel",
 		1,
 	).
-		WithInitialParameters(models.Parameters{1232}).
+		WithInitialParameters(template.Parameters{1232}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
 				body := fmt.Sprintf(`
 						let x = [0]
 						%s
-					`, transaction_builder.LoopTemplate(
+					`, template.LoopTemplate(
 					parameters[0],
 					`
 							x.insert(at: 0, 1)
@@ -697,23 +707,23 @@ var simpleTemplates = []models.Template{
 							`,
 				))
 
-				return models.TransactionEdit{
+				return template.TransactionEdit{
 					PrepareBlock: body,
-				}
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"Array Insert Set Remove",
 		"ArrInsSetDel",
 		1,
 	).
-		WithInitialParameters(models.Parameters{994}).
+		WithInitialParameters(template.Parameters{994}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
 				body := fmt.Sprintf(`
 						let x = [0]
 						%s
-					`, transaction_builder.LoopTemplate(
+					`, template.LoopTemplate(
 					parameters[0],
 					`
 							x.insert(at: 0, 1)
@@ -722,19 +732,19 @@ var simpleTemplates = []models.Template{
 							`,
 				))
 
-				return models.TransactionEdit{
+				return template.TransactionEdit{
 					PrepareBlock: body,
-				}
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"Array Insert Map",
 		"ArrInsMap",
 		1,
 	).
-		WithInitialParameters(models.Parameters{1345}).
+		WithInitialParameters(template.Parameters{1345}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
 				body := fmt.Sprintf(`
 						let x = [0]
 						%s
@@ -743,26 +753,26 @@ var simpleTemplates = []models.Template{
 								return v+1
 							}
 						let y = x.map(addOne)
-					`, transaction_builder.LoopTemplate(
+					`, template.LoopTemplate(
 					parameters[0],
 					`
 							x.insert(at: 0, i)
 							`,
 				))
 
-				return models.TransactionEdit{
+				return template.TransactionEdit{
 					PrepareBlock: body,
-				}
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"Array Insert Filter",
 		"ArrInsFilt",
 		1,
 	).
-		WithInitialParameters(models.Parameters{1356}).
+		WithInitialParameters(template.Parameters{1356}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
 				body := fmt.Sprintf(`
 						let x = [0]
 						%s
@@ -771,76 +781,76 @@ var simpleTemplates = []models.Template{
 								return element %% 2 == 0
 							}
 						let y = x.filter(isEven)
-					`, transaction_builder.LoopTemplate(
+					`, template.LoopTemplate(
 					parameters[0],
 					`
 							x.insert(at: 0, i)
 							`,
 				))
 
-				return models.TransactionEdit{
+				return template.TransactionEdit{
 					PrepareBlock: body,
-				}
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"Array Append",
 		"ArrApp",
 		1,
 	).
-		WithInitialParameters(models.Parameters{1905}).
+		WithInitialParameters(template.Parameters{1905}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
 				body := fmt.Sprintf(`
 				let x = [0]
 				%s
-			`, transaction_builder.LoopTemplate(
+			`, template.LoopTemplate(
 					parameters[0],
 					`
 					x.append(i)
 					`,
 				))
 
-				return models.TransactionEdit{
+				return template.TransactionEdit{
 					PrepareBlock: body,
-				}
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"Dict Insert",
 		"DictIns",
 		1,
 	).
-		WithInitialParameters(models.Parameters{1598}).
+		WithInitialParameters(template.Parameters{1598}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
 				body := fmt.Sprintf(`
 						let x = {"0": 0}
 						%s
-					`, transaction_builder.LoopTemplate(
+					`, template.LoopTemplate(
 					parameters[0],
 					`
 							x.insert(key: i.toString(), i)
 							`,
 				))
 
-				return models.TransactionEdit{
+				return template.TransactionEdit{
 					PrepareBlock: body,
-				}
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"Dict Insert Remove",
 		"DictInsDel",
 		1,
 	).
-		WithInitialParameters(models.Parameters{713}).
+		WithInitialParameters(template.Parameters{713}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
 				body := fmt.Sprintf(`
 						   let x = {"0": 0}
                            %s
-					`, transaction_builder.LoopTemplate(
+					`, template.LoopTemplate(
 					parameters[0],
 					`
 							x.insert(key: i.toString(), i)
@@ -848,23 +858,23 @@ var simpleTemplates = []models.Template{
 							`,
 				))
 
-				return models.TransactionEdit{
+				return template.TransactionEdit{
 					PrepareBlock: body,
-				}
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"Dict Insert Set Remove",
 		"DictInsSetDel",
 		1,
 	).
-		WithInitialParameters(models.Parameters{565}).
+		WithInitialParameters(template.Parameters{565}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
 				body := fmt.Sprintf(`
 						let x = {"0": 0}
 						%s
-					`, transaction_builder.LoopTemplate(
+					`, template.LoopTemplate(
 					parameters[0],
 					`
 							x.insert(key: i.toString(), i)
@@ -873,19 +883,19 @@ var simpleTemplates = []models.Template{
 							`,
 				))
 
-				return models.TransactionEdit{
+				return template.TransactionEdit{
 					PrepareBlock: body,
-				}
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"Dict Iter Copy",
 		"DictItrCpy",
 		1,
 	).
-		WithInitialParameters(models.Parameters{667}).
+		WithInitialParameters(template.Parameters{667}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
 				body := fmt.Sprintf(`
 						let x = {"0": 0}
 						let y = {"0": 0}
@@ -894,26 +904,26 @@ var simpleTemplates = []models.Template{
 							y[key] = x[key]
 							return true
 						})
-					`, transaction_builder.LoopTemplate(
+					`, template.LoopTemplate(
 					parameters[0],
 					`
 							x.insert(key: i.toString(), i)
 							`,
 				))
 
-				return models.TransactionEdit{
+				return template.TransactionEdit{
 					PrepareBlock: body,
-				}
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"Array Create Batch",
 		"ArrCB",
 		1,
 	).
-		WithInitialParameters(models.Parameters{226}).
+		WithInitialParameters(template.Parameters{226}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
 				sumStr := "0"
 				for i := 0; i < int(parameters[0]); i++ {
 					sumStr += fmt.Sprintf(",%d", i)
@@ -927,20 +937,20 @@ var simpleTemplates = []models.Template{
 						}
 					`, sumStr)
 
-				return models.TransactionEdit{
+				return template.TransactionEdit{
 					PrepareBlock: body,
-				}
+				}, nil
 			},
 		),
 
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"Verify Signature",
 		"VerSig",
 		1,
 	).
-		WithInitialParameters(models.Parameters{14}).
+		WithInitialParameters(template.Parameters{14}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
 				numKeys := parameters[0] + 1
 				message := []byte("hello world")
 
@@ -951,17 +961,17 @@ var simpleTemplates = []models.Template{
 					seed := make([]byte, crypto.MinSeedLength)
 					_, err := rand.Read(seed)
 					if err != nil {
-						return models.TransactionEdit{}
+						return template.TransactionEdit{}, err
 					}
 
 					privateKey, err := crypto.GeneratePrivateKey(crypto.ECDSA_P256, seed)
 					if err != nil {
-						return models.TransactionEdit{}
+						return template.TransactionEdit{}, err
 					}
 					rawKeys[i] = hex.EncodeToString(privateKey.PublicKey().Encode())
 					sig, err := crypto.NewInMemorySigner(privateKey, crypto.SHA3_256)
 					if err != nil {
-						return models.TransactionEdit{}
+						return template.TransactionEdit{}, err
 					}
 					signers[i] = sig
 				}
@@ -1017,24 +1027,24 @@ var simpleTemplates = []models.Template{
 						}
 					`, keyListAdd, signaturesAdd, hex.EncodeToString(message))
 
-				return models.TransactionEdit{
+				return template.TransactionEdit{
 					PrepareBlock: body,
-				}
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"Aggregate BLS aggregate signature",
 		"BLSAggSig",
 		1,
 	).
-		WithInitialParameters(models.Parameters{186}).
+		WithInitialParameters(template.Parameters{186}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
 				numSigs := int(parameters[0]) + 1
 				input := make([]byte, 100)
 				_, err := rand.Read(input)
 				if err != nil {
-					return models.TransactionEdit{}
+					return template.TransactionEdit{}, err
 				}
 
 				signatures := ""
@@ -1050,37 +1060,37 @@ var simpleTemplates = []models.Template{
 							BLS.aggregateSignatures(signatures)!
 						`, signatures)
 
-				return models.TransactionEdit{
+				return template.TransactionEdit{
 					PrepareBlock: body,
-				}
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"Aggregate BLS aggregate keys",
 		"BLSAggKey",
 		1,
 	).
-		WithInitialParameters(models.Parameters{41}).
+		WithInitialParameters(template.Parameters{41}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
 				numSigs := int(parameters[0]) + 1
 				pks := make([]crypto2.PublicKey, 0, numSigs)
 				signatureAlgorithm := crypto2.BLSBLS12381
 				input := make([]byte, 100)
 				_, err := rand.Read(input)
 				if err != nil {
-					return models.TransactionEdit{}
+					return template.TransactionEdit{}, err
 				}
 
 				for i := 0; i < numSigs; i++ {
 					seed := make([]byte, crypto2.KeyGenSeedMinLen)
 					_, err := rand.Read(seed)
 					if err != nil {
-						return models.TransactionEdit{}
+						return template.TransactionEdit{}, err
 					}
 					sk, err := crypto.GeneratePrivateKey(signatureAlgorithm, seed)
 					if err != nil {
-						return models.TransactionEdit{}
+						return template.TransactionEdit{}, err
 					}
 
 					pks = append(pks, sk.PublicKey())
@@ -1102,25 +1112,25 @@ var simpleTemplates = []models.Template{
 							BLS.aggregatePublicKeys(pks)!.publicKey
 						`, pkString)
 
-				return models.TransactionEdit{
+				return template.TransactionEdit{
 					PrepareBlock: body,
-				}
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"BLS verify signature",
 		"BLSVer",
 		1,
 	).
-		WithInitialParameters(models.Parameters{32}).
+		WithInitialParameters(template.Parameters{32}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
 				numSigs := int(parameters[0]) + 1
 				pks := make([]crypto2.PublicKey, 0, numSigs)
 				input := make([]byte, 100)
 				_, err := rand.Read(input)
 				if err != nil {
-					return models.TransactionEdit{}
+					return template.TransactionEdit{}, err
 				}
 
 				message := []byte("random_message")
@@ -1159,34 +1169,34 @@ var simpleTemplates = []models.Template{
 							}
 						`, pkString, signaturesString, hex.EncodeToString(message))
 
-				return models.TransactionEdit{
+				return template.TransactionEdit{
 					PrepareBlock: body,
-				}
+				}, nil
 			},
 		),
-	transaction_builder.NewSimpleTemplate(
+	template.NewSimpleTemplate(
 		"BLS verify proof of possession",
 		"BLSVerPoP",
 		1,
 	).
-		WithInitialParameters(models.Parameters{8}).
+		WithInitialParameters(template.Parameters{8}).
 		WithTransactionEdit(
-			func(parameters models.Parameters) models.TransactionEdit {
+			func(parameters template.Parameters) (template.TransactionEdit, error) {
 				signatureAlgorithm := crypto2.BLSBLS12381
 				seed := make([]byte, crypto2.KeyGenSeedMinLen)
 				_, err := rand.Read(seed)
 				if err != nil {
-					return models.TransactionEdit{}
+					return template.TransactionEdit{}, err
 				}
 				sk, err := crypto.GeneratePrivateKey(signatureAlgorithm, seed)
 				if err != nil {
-					return models.TransactionEdit{}
+					return template.TransactionEdit{}, err
 				}
 				pk := sk.PublicKey()
 
 				proof, err := crypto2.BLSGeneratePOP(sk)
 				if err != nil {
-					return models.TransactionEdit{}
+					return template.TransactionEdit{}, err
 				}
 
 				body := fmt.Sprintf(`
@@ -1200,16 +1210,16 @@ var simpleTemplates = []models.Template{
 						`,
 					hex.EncodeToString(pk.Encode()),
 					hex.EncodeToString(proof.Bytes()),
-					transaction_builder.LoopTemplate(parameters[0], `
+					template.LoopTemplate(parameters[0], `
 							var valid = p.verifyPoP(proof)
 							if !valid {
 								panic("invalid proof of possession")
 							}
 						`))
 
-				return models.TransactionEdit{
+				return template.TransactionEdit{
 					PrepareBlock: body,
-				}
+				}, nil
 			},
 		),
 }
@@ -1220,21 +1230,6 @@ func stringOfLen(length uint64) string {
 		someString[i] = 'x'
 	}
 	return string(someString)
-}
-
-func stringArrayOfLen(arrayLen uint64, stringLen uint64) string {
-	builder := strings.Builder{}
-	builder.WriteRune('[')
-	for i := uint64(0); i < arrayLen; i++ {
-		if i > 0 {
-			builder.WriteRune(',')
-		}
-		builder.WriteRune('"')
-		builder.WriteString(stringOfLen(stringLen))
-		builder.WriteRune('"')
-	}
-	builder.WriteRune(']')
-	return builder.String()
 }
 
 func stringDictOfLen(dictLen uint64, stringLen uint64) string {

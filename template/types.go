@@ -1,8 +1,34 @@
-package models
+package template
 
-import (
-	"strings"
-)
+import "strings"
+
+type Label = string
+
+type Parameters = []uint64
+
+type TransactionBody string
+
+type TransactionEdit struct {
+	PrepareBlock      string
+	ExecuteBlock      string
+	FieldDeclarations string
+}
+
+type Template interface {
+	Name() string
+	Label() Label
+
+	// Cardinality returns the number of parameters that this template has
+	Cardinality() uint
+
+	TransactionEditFunc(parameters Parameters) (TransactionEdit, error)
+	InitialParameters() Parameters
+}
+
+type Registry interface {
+	Get(label Label) (Template, error)
+	AllLabels() []Label
+}
 
 func TrimAndReplaceIndentation(s string, indentation int) string {
 	// convert all tabs to spaces

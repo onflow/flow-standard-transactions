@@ -1,21 +1,19 @@
-package transaction_builder
+package template
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/onflow/flow-standard-transactions/load_generator/models"
-
 	"github.com/rs/zerolog"
 )
 
 type TransactionBuilder struct {
-	registry models.Registry
+	registry Registry
 }
 
 func NewTransactionBuilder(
 	log zerolog.Logger,
-	registry models.Registry,
+	registry Registry,
 ) *TransactionBuilder {
 	return &TransactionBuilder{
 		registry: registry,
@@ -26,29 +24,20 @@ type builtTransaction struct {
 	log zerolog.Logger
 
 	transactionBuilder *TransactionBuilder
-	transactionEdits   []models.TransactionEdit
+	transactionEdits   []TransactionEdit
 }
 
-// Prepare prepares everything for sending a transaction with the given a DNA
-// - if a global setup is required, it is run once.
-// - if an account one time setup is required, it is run once per account.
-// - if an account setup is required, it is run every time prepare is called.
-//
-// It returns the transaction body or an error if something went wrong
-func (t *TransactionBuilder) BuildTransaction() (models.TransactionBody, error) {
-	preparedDNA := &builtTransaction{
+func (t *TransactionBuilder) BuildTransaction() TransactionBody {
+	builtTransaction := &builtTransaction{
 		transactionBuilder: t,
 	}
 
-	body, err := preparedDNA.BuildTransactionBody()
-	if err != nil {
-		// return emptyBody, errors.NewPrepareTransactionFromDNA(err, dna)
-	}
+	body := builtTransaction.BuildTransactionBody()
 
-	return models.TransactionBody(body), nil
+	return TransactionBody(body)
 }
 
-func (b *builtTransaction) BuildTransactionBody() (string, error) {
+func (b *builtTransaction) BuildTransactionBody() string {
 	prepare := strings.Builder{}
 	execute := strings.Builder{}
 	declare := strings.Builder{}
@@ -61,13 +50,13 @@ func (b *builtTransaction) BuildTransactionBody() (string, error) {
 
 		if edit.PrepareBlock != "" {
 			prepare.WriteString("        f = fun() {\n")
-			prepare.WriteString(models.TrimAndReplaceIndentation(edit.PrepareBlock, 12))
+			prepare.WriteString(TrimAndReplaceIndentation(edit.PrepareBlock, 12))
 			prepare.WriteString("        }\n        f()\n")
 		}
 
 		if edit.ExecuteBlock != "" {
 			execute.WriteString("        f = fun() {\n")
-			execute.WriteString(models.TrimAndReplaceIndentation(edit.ExecuteBlock, 12))
+			execute.WriteString(TrimAndReplaceIndentation(edit.ExecuteBlock, 12))
 			execute.WriteString("        }\n        f()\n")
 		}
 
@@ -90,5 +79,5 @@ transaction(){
 		declare.String(),
 		prepare.String(),
 		execute.String(),
-	), nil
+	)
 }
