@@ -50,7 +50,7 @@ func simpleContractTemplateWithLoop(
 	).WithInitialParameters(template.Parameters{initialLoopLength})
 }
 
-var contractTemplates = []template.Template{
+var ContractTemplates = []template.Template{
 	simpleContractTemplateWithLoop(
 		"call empty contract function",
 		"CEC",

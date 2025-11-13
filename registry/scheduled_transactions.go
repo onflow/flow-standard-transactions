@@ -55,7 +55,7 @@ func simpleScheduledTransactionTemplateWithLoop(
 		})
 }
 
-var scheduledTransactions = []template.Template{
+var ScheduledTransactions = []template.Template{
 	simpleScheduledTransactionTemplateWithLoop(
 		"scheduled transaction and execute",
 		"ST",

@@ -33,7 +33,7 @@ func simpleTemplateWithLoop(
 		)
 }
 
-var simpleTemplates = []template.Template{
+var SimpleTemplates = []template.Template{
 	simpleTemplateWithLoop(
 		"empty loop",
 		"EL",

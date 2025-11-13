@@ -73,16 +73,16 @@ var Global Registry
 
 func init() {
 	Global = NewRegistry()
-	err := Global.RegisterAll(simpleTemplates)
+	err := Global.RegisterAll(SimpleTemplates)
 	if err != nil {
 		panic(err)
 	}
-	err = Global.RegisterAll(contractTemplates)
+	err = Global.RegisterAll(ContractTemplates)
 	if err != nil {
 		panic(err)
 	}
 
-	err = Global.RegisterAll(scheduledTransactions)
+	err = Global.RegisterAll(ScheduledTransactions)
 	if err != nil {
 		panic(err)
 	}
